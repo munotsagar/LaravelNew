@@ -1,0 +1,24 @@
+<?php
+/**
+ * Map database column name with input parameter received in Filter API related to statement
+ */
+return [
+    'STATEMENT' => [
+        'statementId' => 'statement.id',
+        'voidedStatementId' => 'statement.object.id',
+        'voided' => 'statement.verb.display.en-US',
+        'StatementRef' => 'statement.object.objectType',
+        'agent' => 'statement.actor.mbox',
+        'verb' => 'statement.verb.display.en-US',
+        'activity' => 'statement.object.objectType',
+        'registration' => 'statement.context.registration',
+        'related_activities' => 'statement.object.member.objectType',
+        'related_agents' => 'statement.actor.member.objectType',
+        'since' => 'statement.timestamp',
+        'until' => 'statement.timestamp',
+        'limit' => 'limit',
+        'ascending' => 'ascending'
+    ]
+
+];
+

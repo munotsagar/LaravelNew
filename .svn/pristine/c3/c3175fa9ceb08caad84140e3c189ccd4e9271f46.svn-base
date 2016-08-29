@@ -1,0 +1,13 @@
+<?php
+namespace App\Repository\Filter;
+
+interface IFilterRepository
+{
+    public function filterBy($filters);
+
+    public function all();
+
+    public function getAllChildsRefStatement($statementId);
+
+    public function statementFilterWhereCondition($orderByfieldName, $orderByValuem, $recursiveFlag);
+}

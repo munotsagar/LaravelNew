@@ -1,0 +1,49 @@
+
+<?php $__env->startSection('content'); ?>
+    <h1>Statement List</h1>
+    <table class="table">
+        <thead>
+        <?php /*<tr>
+            <th colspan="2"><h4><a href="<?php echo e(url('/blog/create')); ?>">Add New</a></h4></th>
+
+            <th></th>
+            <th></th>
+        </tr>*/ ?>
+        <tr>
+            <th>Sr. No</th>
+            <th>Actor Name</th>
+            <th>Actor mbox</th>
+            <th>Verb Id</th>
+            <th>Verb Display</th>
+            <th>Object Id</th>
+            <th>Object Type</th>
+            <?php /*<th><Act></Act>ion</th>*/ ?>
+        </tr>
+        </thead>
+        <tbody>
+        <?php $i = $page; ?>
+        <?php foreach($statements as $statement): ?>
+            <tr class="success">
+                <?php /*<?php echo e(dd($statement->statement['actor'])); ?>*/ ?>
+                <td><?php echo e($i); ?></td>
+                <td><?php echo e($statement->statement['actor']['name']); ?></td>
+                <td><?php echo e($statement->statement['actor']['mbox']); ?></td>
+                <td><?php echo e($statement->statement['verb']['id']); ?></td>
+                <td><?php echo e($statement->statement['verb']['display']['en-US']); ?></td>
+                <td><?php echo e($statement->statement['object']['id']); ?></td>
+                <td><?php echo e($statement->statement['object']['objectType']); ?></td>
+
+                <?php /*<td><a href="<?php echo e(url('/blog/'.$blog->id.'/edit')); ?>"> Edit </a>/ <a href="javascript:checkDelete(<?php echo e($blog->id); ?>);
+                ">Delete</a></td>*/ ?>
+            </tr>
+            <?php /*<?php echo e($i = $i+1); ?>*/ ?>
+            <?php $i = $i+1; ?>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startSection('footer'); ?>
+
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('app', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

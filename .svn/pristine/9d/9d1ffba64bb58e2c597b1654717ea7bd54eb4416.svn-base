@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use Illuminate\Http\Request;
+
+use App\Http\Requests;
+
+use App\CustomerMaster;
+
+use App\Http\Controllers\BaseController;
+
+class CustomerMasterController extends BaseController
+{
+    public function validateCustomer($username, $password)
+    {
+        $customer = CustomerMaster::where(['username' => $username, 'password' => $password])->count();
+        if($customer)
+        {
+            $data = [
+                'error' => 'There is no problem',
+                'success' => '1',
+                'Status Code' => '404', //
+                'exception' => 'User authontication Success!!!'
+            ];
+
+        }else{
+            $data = [
+                'error' => 'User authontication failed!!!',
+                'success' => '0',
+                'Status Code' => '404' // Need in header
+            ];
+
+        }
+        return $data;
+    }
+
+    public function credentialsNotFound()
+    {
+        $data = [
+            'error' => 'Required credentials not found',
+            'success' => '0',
+            'Status Code' => '404', // Need to add in header
+            'exception' => 'User authontication failed!!!'
+        ];
+
+        return $data;
+    }
+}

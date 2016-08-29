@@ -1,0 +1,164 @@
+<?php
+namespace App\Repository\Filter;
+
+use App\Models\Statement;
+
+use App\iLRS\Traits\FilterableTrait;
+
+class StatementFilterRepository implements IStatementFilterRepository
+{
+    /**
+     * Use filter trait to validate and replace request parameter with database fields
+     */
+    use FilterableTrait;
+    /**
+     * Statement object to execute statement related queries
+     * @var Statement
+     */
+    protected $filter;
+
+    /**
+     * Store all child statment ids for records which has statementRef id
+     * @var $childStatementIds
+     */
+    protected $childStatementIds;
+
+    /**
+     * Hold the original query string to add conditions for specific query string parameter
+     * @var $requestParameters
+     */
+    protected $requestParameters;
+
+    /**
+     * Add valid fields in valid Filterable Fields array
+     * Create filter object with the reference of Statement
+     * FilterRepository constructor.
+     * @param Statement $statements
+     */
+    public function __construct(Statement $statements)
+    {
+        /**
+         * Maintain validFilterableFields array to map all the query string parameter with db fields
+         */
+        $this->validFilterableFields = [self::STATEMENT_ID, self::VOIDED_STATE_ID, self::VOIDED, self::AGENT, self::VERB, self::ACTIVITY, self::REGISTRATION, self::REL_ACTIVITY, self::REL_AGENTS, self::SINCE, self::UNTIL, self::LIMIT, self::FORMAT, self::ATTACHMENTS, self::ASC_ORDER, self::STATEMENT_REF];
+        $this->filter = $statements;
+    }
+
+    /**
+     * FilterBy to filter input parameters
+     * @param $filters
+     * @return $this
+     */
+    public function filterBy($filters)
+    {
+        $this->requestParameters = $filters;
+        $this->addFilter($filters);
+        return $this;
+    }
+
+    /**
+     * Add filters parameter in where condition to get matching records
+     * @return mixed
+     */
+    public function all()
+    {
+        /**
+         * If condition to check VOIDED_STATE_ID, if found then fetch the statement as per the voidedFilters and get
+         * the statement.id and store into filters array
+         */
+        if (array_key_exists(self::VOIDED_STATE_ID, $this->requestParameters)) {
+            $voidedFilterResult = $this->filter->where($this->voidedFilters)->get()->toArray();
+            if (isset($voidedFilterResult[0]['statement']['id'])) {
+                $this->filters[config('ilrs-fieldmap.STATEMENT.' . self::STATEMENT_ID)] =
+                    $voidedFilterResult[0]['statement']['id'];
+            }
+        }
+        if (count($this->filters) > 0) {
+            $needChildStatment = 0;
+            /**
+             * https://github.com/adlnet/xAPI-Spec/blob/master/xAPI.md#stmtapi
+             * As per xAPI standards, added if condition to not allowed to retrieve child statement records if query
+             * string has statementId Or voidedStatementId
+             */
+            if (!array_key_exists(self::STATEMENT_ID, $this->requestParameters) && !array_key_exists(self::VOIDED_STATE_ID, $this->requestParameters)) {
+                $needChildStatment = 1;
+            }
+            $orderByfieldName = "_id";
+            $orderByValue = "ASC";
+            if (array_key_exists(self::ASC_ORDER, $this->filters)) {
+                $orderByfieldName = "created_at";
+                if ($this->filters[self::ASC_ORDER]=="false") {
+                    $orderByValue = 'DESC';
+                } else {
+                    $orderByValue = 'ASC';
+                }
+                unset($this->filters[self::ASC_ORDER]);
+            }
+
+            if (array_key_exists(self::LIMIT, $this->filters) && (int)$this->filters[self::LIMIT] > 0) {
+                $limit = (int)$this->filters[self::LIMIT];
+                unset($this->filters[self::LIMIT]);
+                $statements = $this->generateWhereCondition($orderByfieldName, $orderByValue, $needChildStatment);
+                return $statements->limit($limit)->get()->toArray();
+            } else {
+                $statements = $this->generateWhereCondition($orderByfieldName, $orderByValue, $needChildStatment);
+                return $statements->get()->toArray();
+            }
+        }else{
+            return;
+        }
+    }
+
+    /**
+     * Generate where condition by getting $orderByfieldName, $orderByValue and $needChildStatment flag
+     * @param $orderByfieldName
+     * @param $orderByValue
+     * @param $needChildStatment
+     * @return mixed
+     */
+    private function generateWhereCondition($orderByfieldName, $orderByValue, $needChildStatment)
+    {
+        $filterResult = $this->filter->where($this->filters);
+
+        if ($needChildStatment && (!isset($this->requestParameters[self::VERB]) || $this->requestParameters[self::VERB]!= self::VOIDED)) {
+            $filterResult = $filterResult->where("statement.verb.display.en-US", "!=", self::VOIDED);
+        }
+        $filterResult = $filterResult->orderBy($orderByfieldName, $orderByValue)->get();
+        if (count($filterResult) > 0) {
+            foreach ($filterResult as $filterRes) {
+                $this->childStatementIds[] = $filterRes->statement['id'];
+                if ($filterRes->statement['object']['objectType'] == self::STATEMENT_REF && $needChildStatment == 1) {
+                    $this->getAllChildStatements($filterRes->statement['object']['id']);
+                }
+            }
+            return $this->filter->whereIn('statement.id', $this->childStatementIds)->orderBy($orderByfieldName, $orderByValue);
+        }else{
+            return $this->filter->where($this->filters)->orderBy($orderByfieldName, $orderByValue);
+        }
+    }
+
+    /**
+     * Get all child statements for statement, object which has objectType = statementRef and object id = statement id
+     * Recursive function to fetch statement reference id and store statement id to identify child
+     * @param $filterNested
+     * @return array
+     */
+    private function getAllChildStatements($filterNested)
+    {
+        if ($filterNested) {
+            $filter = $this->filter->where('statement.id', $filterNested);
+            if (!isset($this->requestParameters[self::VERB]) || $this->requestParameters[self::VERB]!= self::VOIDED) {
+                $filter = $filter->where("statement.verb.display.en-US", "!=", self::VOIDED);
+            }
+            $filter = $filter->first();
+            $this->childStatementIds[] = $filterNested;
+            if(isset($filter->statement['object']['objectType']) && $filter->statement['object']['objectType'] == "StatementRef"){
+                $this->getAllChildStatements($filter->statement['object']['id']);
+            } else {
+                return $this->childStatementIds;
+            }
+        } else {
+            return $this->childStatementIds;
+        }
+    }
+}

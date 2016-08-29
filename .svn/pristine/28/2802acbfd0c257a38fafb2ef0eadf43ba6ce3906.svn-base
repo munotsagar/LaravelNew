@@ -1,0 +1,12 @@
+.home {
+  color: red;
+  font-size: 40px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+
+body {
+  padding-top: 40px; }
+
+body, label, .checkbox label {
+  font-weight: 300; }
+
+/*# sourceMappingURL=app.css.map */

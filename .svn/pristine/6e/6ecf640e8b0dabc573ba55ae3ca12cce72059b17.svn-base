@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+
+use Log;
+use App\Http\Controllers\Auth\CustomerMasterController;
+
+use Response;
+
+class CustomAuthentication
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @return mixed
+     */
+    public function handle($request, Closure $next)
+    {
+        $username = $request->header('apiusername');
+        $password = $request->header('apipassword');
+        Log::info('Middleware: CustomAuthontication: handle: username: '.$username);
+        Log::info('Middleware: CustomAuthontication: handle: password: '.$password);
+        $customerMaster = new CustomerMasterController();
+        if($username!="" && $password!="") {
+
+
+            $validateResponse = $customerMaster->validateCustomer($username, $password);
+            if ($validateResponse['success']) {
+                return $next($request);
+            } else {
+                return response()->json($validateResponse)
+                    ->header('Status Code', '404');
+            }
+        }else{
+            $validateResponse = $customerMaster->credentialsNotFound();
+            return Response::json($validateResponse, '404');
+        }
+    }
+}

@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests;
+
+use Request;
+
+use Response;
+
+use App\Models\Statement;
+
+use Illuminate\Pagination\Paginator;
+
+use Carbon\Carbon;
+
+class ReportsController extends ApiBaseController
+{
+    public function showReportsCategory()
+    {
+        return view('reports.reportscategory');
+    }
+
+    public function showLaunchStatistic()
+    {
+        $statementDistinceVideo = Statement::where('statement.object.definition.name.en-US', 'Video-Mode');
+        $statementVideo = $statementDistinceVideo->distinct('statement.actor.mbox')->get();
+        $completionVideoCount = count($statementVideo);
+
+        $statementDistinceText = Statement::where('statement.object.definition.name.en-US', 'Text-Mode');
+        $statementText = $statementDistinceText->distinct('statement.actor.mbox')->get();
+        $completionTextCount = count($statementText);
+
+        return view('reports.statistic', compact('completionVideoCount', 'completionTextCount'));
+
+    }
+
+    public function showCourseCompletion()
+    {
+        $statementDistinceTrue = Statement::where('statement.result.completion', true);
+        $statementTrue = $statementDistinceTrue->distinct('statement.actor.mbox')->get();
+        $completionTrueCount = count($statementTrue);
+
+        $statementDistinceFalse = Statement::where('statement.result.completion', false);
+        $statementFalse = $statementDistinceFalse->distinct('statement.actor.mbox')->get();
+        $completionFalseCount = count($statementFalse);
+
+        return view('reports.completion', compact('completionTrueCount', 'completionFalseCount'));
+    }
+
+    public function showQuestionAnalysis()
+    {
+
+    }
+	
+	public function showModuleAnalysis()
+    {
+        $statementQ1 = Statement::where('statement.object.definition.name.en-US', 'Threats Interactivity')->get();
+
+        $statementQ1Count = count($statementQ1);
+
+        $statementQ2 = Statement::where('statement.object.definition.name.en-US', 'What Is Information Security?')->get();
+
+        $statementQ2Count = count($statementQ2);
+
+        return view('reports.moduleanalysis', compact('statementQ1Count', 'statementQ2Count'));
+    }
+
+}

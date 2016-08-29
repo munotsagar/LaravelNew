@@ -1,0 +1,12 @@
+<?php
+
+namespace App;
+
+use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
+use Carbon\Carbon;
+
+class CustomerMaster extends Moloquent
+{
+    protected $collection = 'customermaster';
+
+}

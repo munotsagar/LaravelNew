@@ -1,0 +1,35 @@
+<?php
+namespace App\iLRS\Traits;
+
+trait FilterableTrait
+{
+    /**
+     * valid filterable fields array to store field names
+     * @var array
+     */
+    public $validFilterableFields = [];
+
+    /**
+     * Store valid filter fields in array
+     * @var array
+     *
+     */
+    public $filters = [];
+
+    /**
+     * Validate and store filter fields
+     * @param $filters
+     * @return bool
+     */
+    public function addFilter($filters)
+    {
+        foreach($filters as $field => $value)
+        {
+            if(!in_array($field, $this->validFilterableFields)) {
+                continue;
+            }
+            $this->filters[config('ilrs-fieldmap.'.$field)] = $value;
+        }
+        return true;
+    }
+}

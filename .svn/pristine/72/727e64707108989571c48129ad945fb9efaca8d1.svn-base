@@ -1,0 +1,47 @@
+<?php
+
+// Service Provider to bind Interface with Repository
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class LRSServiceProvider extends ServiceProvider
+{
+    public function register()
+    {
+        /**
+         * Bind Statement Repository and Interface Class
+         */
+        $this->app->bind(
+            'App\Repository\Statement\IStatementRepository',
+            'App\Repository\Statement\StatementRepository'
+        );
+
+        /**
+         * Bind Report Repository and Interface Class
+         */
+        $this->app->bind(
+            'App\Repository\Report\IReportRepository',
+            'App\Repository\Report\ReportRepository'
+        );
+
+        /**
+         * Bind Customer Repository and Interface Class
+         */
+        $this->app->bind(
+            'App\Repository\Customer\ICustomerRepository',
+            'App\Repository\Customer\CustomerRepository'
+        );
+
+        /**
+         * Bind Statement Filter Repository and Interface Class
+         */
+        $this->app->bind(
+            'App\Repository\Filter\IStatementFilterRepository',
+            'App\Repository\Filter\StatementFilterRepository'
+        );
+    }
+
+
+}

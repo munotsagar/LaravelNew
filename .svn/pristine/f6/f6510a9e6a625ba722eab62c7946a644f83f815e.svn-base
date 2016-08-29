@@ -1,0 +1,8 @@
+<?php
+/**
+ * Map database column name with input parameter received in Fileter API
+ */
+return [
+    'statementId' => 'statement.id',
+];
+

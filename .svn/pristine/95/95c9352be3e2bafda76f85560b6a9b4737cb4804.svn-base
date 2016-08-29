@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use Illuminate\Http\Request;
+use App\Http\Requests;
+use App\Models\Customer;
+use App\Http\Controllers\BaseController;
+
+class CustomAuthController extends BaseController
+{
+
+    public function IsAuthenticated($headervalues)
+    {
+        // Check for header value for internal API call
+        // If yes
+        //      Check for the key
+        //      Match the key with config file key
+        //      Throw error if doesn't match
+        //  If No
+        //      Check for username / password
+        //      Match against the database
+        //      Throw error if doesn't match
+
+        if($headervalues[config('ilrs-constants.HEADERS.API_MODE')] === config('ilrs-constants.API_MODE.INTERNAL'))
+        {
+            if($headervalues[config('ilrs-constants.HEADERS.API_KEY')] === config('ilrs-config.API_KEY'))
+            {
+                return 0;
+            }
+            else
+            {
+                //abort(401,'Unathorized Access');
+                return 401;
+            }
+        }
+        else
+        {
+            // Pending - Also check if Http Basic Authentication is Enabled
+            // and throw appropirate error if disabled
+            // If enabled, then check username / password
+
+            $api_username = $headervalues[config('ilrs-constants.HEADERS.API_USERNAME')];
+            $api_password = $headervalues[config('ilrs-constants.HEADERS.API_PASSWORD')];
+
+            if($api_username != "" && $api_password != "")
+            {
+                $isMatch = Customer::where(['username' => $api_username, 'password' => $api_password])->count();
+                if($isMatch)
+                {
+                    return 0;
+
+                }else{
+                    return 401;
+                }
+            }
+            else
+            {
+                return 401;
+            }
+
+        }
+
+    }
+
+}

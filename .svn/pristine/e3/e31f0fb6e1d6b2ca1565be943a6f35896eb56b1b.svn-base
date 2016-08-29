@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests;
+
+use Request;
+
+use Response;
+
+use App\Models\CourseContent;
+
+use Illuminate\Pagination\Paginator;
+
+use Carbon\Carbon;
+
+use App\Http\Controllers\ApiBaseController;
+
+class ReportsController extends ApiBaseController
+{
+    public function showReportsCategory()
+    {
+        return view('reports.reportscategory');
+    }
+
+    public function showLaunchStatistic()
+    {
+        $courseContentDistinceVideo = CourseContent::where('statement.object.definition.name.en-US', 'Video-Mode');
+        $courseContentVideo = $courseContentDistinceVideo->distinct('statement.actor.mbox')->get();
+        $completionVideoCount = count($courseContentVideo);
+
+        $courseContentDistinceText = CourseContent::where('statement.object.definition.name.en-US', 'Text-Mode');
+        $courseContentText = $courseContentDistinceText->distinct('statement.actor.mbox')->get();
+        $completionTextCount = count($courseContentText);
+
+        return view('reports.statistic', compact('completionVideoCount', 'completionTextCount'));
+
+    }
+
+    public function showCourseCompletion()
+    {
+        $courseContentDistinceTrue = CourseContent::where('statement.result.completion', true);
+        $scourseContentTrue = $courseContentDistinceTrue->distinct('statement.actor.mbox')->get();
+        $completionTrueCount = count($scourseContentTrue);
+
+        $courseContentDistinceFalse = CourseContent::where('statement.result.completion', false);
+        $courseContentFalse = $courseContentDistinceFalse->distinct('statement.actor.mbox')->get();
+        $completionFalseCount = count($courseContentFalse);
+
+        return view('reports.completion', compact('completionTrueCount', 'completionFalseCount'));
+    }
+
+    public function showQuestionAnalysis()
+    {
+
+    }
+	
+	public function showModuleAnalysis()
+    {
+        $courseContentQ1 = CourseContent::where('statement.object.definition.name.en-US', 'Threats Interactivity')->get();
+
+        $courseContentQ1Count = count($courseContentQ1);
+
+        $courseContentQ2 = CourseContent::where('statement.object.definition.name.en-US', 'What Is Information Security?')->get();
+
+        $courseContentQ2Count = count($courseContentQ2);
+
+        return view('reports.moduleanalysis', compact('courseContentQ1Count', 'courseContentQ2Count'));
+    }
+
+}

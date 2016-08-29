@@ -1,0 +1,40 @@
+
+<?php $__env->startSection('content'); ?>
+    <h1>Activity Log</h1>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Sr. No</th>
+            <th>Actor Name</th>
+            <th>Actor mbox</th>
+            <th>Verb Id</th>
+            <th>Verb Display</th>
+            <th>Object Id</th>
+            <th>Object Type</th>
+            <th>Recoreded Date</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php $i = $page; ?>
+        <?php foreach($statements as $statement): ?>
+            <tr class="success">
+                <td><?php echo e($i); ?></td>
+                <td><?php echo e($statement->statement['actor']['name']); ?></td>
+                <td><?php echo e($statement->statement['actor']['mbox']); ?></td>
+                <td><?php echo e($statement->statement['verb']['id']); ?></td>
+                <td><?php echo e($statement->statement['verb']['display']['en-US']); ?></td>
+                <td><?php echo e($statement->statement['object']['id']); ?></td>
+                <td><?php echo e($statement->statement['object']['objectType']); ?></td>
+                <td><?php echo e($statement->created_at); ?></td>
+
+            </tr>
+            <?php $i = $i+1; ?>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startSection('footer'); ?>
+
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('app', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

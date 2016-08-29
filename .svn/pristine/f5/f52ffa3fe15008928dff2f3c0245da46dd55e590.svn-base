@@ -1,0 +1,71 @@
+<?php
+namespace App\Repository\Filter;
+
+use App\Models\Statement;
+
+use App\iLRS\Traits\FilterableTrait;
+
+class FilterRepository implements IFilterRepository
+{
+    use FilterableTrait;
+
+    protected $filter;
+
+    /**
+     * Add valid fileds in valid Filterable Fields array
+     * Create filter object with the reference of Statement
+     * FilterRepository constructor.
+     * @param Statement $statements
+     */
+    public function __construct(Statement $statements)
+    {
+        $this->validFilterableFields = ['statementId', 'voidedStatementId', 'voided', 'agent', 'verb', 'activity', 'registration', 'related_activities', 'related_agents', 'since', 'until', 'limit', 'format', 'attachments', 'ascending'];
+        $this->filter = $statements;
+    }
+
+    /**
+     * filterBy to filter input parameter
+     * @param $filters
+     * @return $this
+     */
+    public function filterBy($filters)
+    {
+        $this->addFilter($filters);
+        return $this;
+    }
+
+    /**
+     * Add filters parameter in where condition to get matching records
+     * @return mixed
+     */
+    public function all()
+    {
+        if(count($this->filters) > 0)
+        {
+            if (array_key_exists('ascending', $this->filters)) {
+                $fieldName = "created_at";
+                if ($this->filters['ascending']=="false") {
+                    $orderBy = 'DESC';
+                } else {
+                    $orderBy = 'ASC';
+                }
+                unset($this->filters['ascending']);
+            }
+            else {
+                $fieldName = "_id";
+                $orderBy = "ASC";
+            }
+
+            if(array_key_exists('limit', $this->filters) && (int)$this->filters['limit'] > 0) {
+                $limit = (int)$this->filters['limit'];
+                unset($this->filters['limit']);
+                return $this->filter->where($this->filters)->orderBy($fieldName, $orderBy)->limit($limit)->get()->toArray();
+            } else {
+                return $this->filter->where($this->filters)->orderBy($fieldName, $orderBy)->get()->toArray();
+            }
+        }else{
+            return;
+        }
+
+    }
+}

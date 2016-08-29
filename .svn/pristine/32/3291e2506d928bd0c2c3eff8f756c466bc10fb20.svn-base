@@ -1,0 +1,20 @@
+<?php
+namespace App\Repository\Statement;
+
+interface IStatementRepository
+{
+    public function getActivityLogList($perPage);
+
+    public function createStatements($inputs);
+
+    public function showStatement($id);
+
+    public function getStatementByFieldName($fieldName, $id);
+
+    public function updateStatementById($id, $updateField, $data);
+
+    public function getLatestStatement();
+
+    public function getStatementCountByFieldNameAndValue($fieldName, $value);
+
+}

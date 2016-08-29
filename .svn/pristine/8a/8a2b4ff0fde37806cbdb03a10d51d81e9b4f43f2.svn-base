@@ -1,0 +1,20 @@
+<?php
+/**
+ * Map database column name with input parameter received in Filter API
+ */
+return [
+    'statementId' => 'statement.id',
+    'voidedStatementId' => 'statement.id',
+    'voided' => 'statement.verb.display.en-US',
+    'agent' => 'statement.actor.objectType',
+    'verb' => 'statement.verb.id',
+    'activity' => 'statement.object.objectType',
+    'registration' => 'statement.context.registration',
+    'related_activities' => 'statement.object.member.objectType',
+    'related_agents' => 'statement.actor.member.objectType',
+    'since' => 'statement.timestamp',
+    'until' => 'statement.timestamp',
+    'limit' => 'limit',
+    'ascending' => 'ascending'
+];
+

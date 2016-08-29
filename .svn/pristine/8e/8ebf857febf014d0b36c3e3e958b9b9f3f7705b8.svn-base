@@ -1,0 +1,12 @@
+<?php
+
+/*
+|------------------------------------------------------------------
+| Contains Names for All Controllers
+|------------------------------------------------------------------
+*/
+
+return [
+    'STATEMENT' => 'statements',
+    'ACTIVITY_LOG' => 'activitylog'
+];

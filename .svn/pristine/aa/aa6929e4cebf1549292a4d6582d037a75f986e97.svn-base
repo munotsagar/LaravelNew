@@ -1,0 +1,14 @@
+<?php
+
+namespace App;
+
+use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
+use Carbon\Carbon;
+
+class Statement extends Moloquent
+{
+    public $collection = 'statements';
+    public $hidden = ['_id', 'created_at', 'updated_at'];
+    public $fillable = ['statement', 'active', 'voided', 'refs', 'lrs_id', 'timestamp', 'stored'];
+    protected $dates    = ['created_at']; // $statement->created_at->format('Y-m-d');
+}

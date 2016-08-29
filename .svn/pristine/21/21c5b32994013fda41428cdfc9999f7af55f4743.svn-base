@@ -1,0 +1,10 @@
+<?php
+
+
+class StatementRepository implements IStatementRepository
+{
+    public function test()
+    {
+
+    }
+}

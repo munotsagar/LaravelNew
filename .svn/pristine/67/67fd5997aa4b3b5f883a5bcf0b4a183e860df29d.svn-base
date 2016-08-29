@@ -1,0 +1,56 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests;
+
+use Request;
+
+use Response;
+
+use App\Statement;
+
+use Illuminate\Pagination\Paginator;
+
+use Carbon\Carbon;
+
+class ReportsController extends ApiBaseController
+{
+    public function showReportsCategory()
+    {
+        return view('reports.reportscategory');
+    }
+
+    public function showLaunchStatistic()
+    {
+        $statementDistinceVideo = Statement::where('statement.object.definition.name.en-US', 'Video-Mode');
+        $statementVideo = $statementDistinceVideo->distinct('statement.actor.mbox')->get();
+        $completionVideoCount = count($statementVideo);
+
+        $statementDistinceText = Statement::where('statement.object.definition.name.en-US', 'Text-Mode');
+        $statementText = $statementDistinceText->distinct('statement.actor.mbox')->get();
+        $completionTextCount = count($statementText);
+
+        return view('reports.statistic', compact('completionVideoCount', 'completionTextCount'));
+
+    }
+
+    public function showCourseCompletion()
+    {
+        $statementDistinceTrue = Statement::where('statement.result.completion', true);
+        $statementTrue = $statementDistinceTrue->distinct('statement.actor.mbox')->get();
+        $completionTrueCount = count($statementTrue);
+
+        $statementDistinceFalse = Statement::where('statement.result.completion', false);
+        $statementFalse = $statementDistinceFalse->distinct('statement.actor.mbox')->get();
+        $completionFalseCount = count($statementFalse);
+
+        return view('reports.completion', compact('completionTrueCount', 'completionFalseCount'));
+    }
+
+    public function showQuestionAnalysis()
+    {
+
+    }
+
+}

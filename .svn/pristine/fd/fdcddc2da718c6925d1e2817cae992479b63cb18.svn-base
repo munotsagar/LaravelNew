@@ -1,0 +1,5 @@
+<?php
+return [
+    'perPage' => 10,
+    'locationHeaderUrl' => 'http://ec2-54-226-70-79.compute-1.amazonaws.com/ilrs/xapi/statements?statementId='
+];

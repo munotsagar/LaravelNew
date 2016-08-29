@@ -1,0 +1,34 @@
+<?php
+namespace App\Repository\Filter;
+
+interface IStatementFilterRepository
+{
+    /**
+     * Filter and map db fileds with query string parameter
+     * @param $filters
+     * @return mixed
+     */
+    public function filterBy($filters);
+
+    /**
+     * Apply filter and return all filtered statements
+     * @return mixed
+     */
+    public function all();
+
+    /**
+     * Recursive function to fetch statement reference id and store statement id to identify child
+     * @param $statementId
+     * @return mixed
+     */
+    public function getAllChildsRefStatement($statementId);
+
+    /**
+     * Statement filter where condition to handle statement reference id condition
+     * @param $orderByfieldName
+     * @param $orderByValuem
+     * @param $recursiveFlag
+     * @return mixed
+     */
+    public function statementFilterWhereCondition($orderByfieldName, $orderByValuem, $recursiveFlag);
+}

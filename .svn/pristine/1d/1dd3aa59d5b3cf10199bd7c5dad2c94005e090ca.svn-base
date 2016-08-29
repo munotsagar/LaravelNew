@@ -1,0 +1,112 @@
+<?php
+namespace App\Repository\Statement;
+
+use App\Models\Statement;
+
+class StatementRepository implements IStatementRepository
+{
+    /**
+     * statement variable to create IStatementRepository $statement object
+     * @var IStatementRepository
+     */
+    protected $statement;
+
+    /**
+     * StatementRepository constructor.
+     * @param Statement $statements
+     */
+    public function __construct(Statement $statements)
+    {
+        $this->statements = $statements;
+    }
+
+    /**
+     * @param $perPage
+     * @return mixed
+     */
+
+    /**
+     * Retun statement list in descending order with pagination
+     * @param $perPage
+     * @return mixed
+     */
+    public function getActivityLogList($perPage)
+    {
+        $statements   =  $this->statements->latest('created_at')->paginate($perPage);
+        return $statements;
+    }
+
+    /**
+     * Create new Statement with inputs
+     * @param $inputs
+     */
+    public function createStatements($inputs)
+    {
+        $this->statements->_id = $inputs['_id'];
+        $this->statements->statement = $inputs['statement'];
+        $this->statements->save();
+    }
+
+    /**
+     * Fetch statement with statement _id and the statement record
+     * @param $id
+     * @return mixed
+     */
+    public function showStatement($id)
+    {
+        return $this->statements->findOrFail($id);
+    }
+
+    /**
+     * Get statement record by Field Name
+     * @param $fieldName
+     * @param $id
+     * @return mixed
+     */
+    public function getStatementByFieldName($fieldName, $id)
+    {
+        return Statement::where($fieldName, $id)->get()->toArray();
+    }
+
+    /**
+     * Update statement record with id statement fields and data
+     * @param $id
+     * @param $updateField
+     * @param $data
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     */
+    public function updateStatementById($id, $updateField, $data)
+    {
+        $fieldName = 'statement.id';
+        $value = $id;
+        $statementCount = $this->getStatementCountByFieldNameAndValue($fieldName, $value);
+        if($statementCount)
+        {
+            $this->statements->where('statement.id', $id)
+                ->update([$updateField => $data]);
+            return Response('', '204');;
+        }else{
+            return Response('', '404');
+        }
+    }
+
+    /**
+     * Get latest statement record
+     * @return mixed
+     */
+    public function getLatestStatement()
+    {
+        return $this->statements->latest('created_at')->first();
+    }
+
+    /**
+     * Get statement count by field name and value
+     * @param $fieldName
+     * @param $value
+     * @return mixed
+     */
+    public function getStatementCountByFieldNameAndValue($fieldName, $value)
+    {
+        return $this->statements->where($fieldName, $value)->count();
+    }
+}

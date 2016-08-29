@@ -1,0 +1,121 @@
+<?php
+
+namespace App\Http\Controllers;
+
+//use Illuminate\Http\Request;
+use App\Http\Requests;
+use Request;
+use Response;
+use App\Models\Statement;
+use App\IlrsCore\IlrsCoreStatement;
+use Illuminate\Pagination\Paginator;
+use Carbon\Carbon;
+use App\Repository\Statement\IStatementRepository;
+
+class StatementController extends ApiBaseController
+{
+    /**
+     * statement variable to create IStatementRepository $statement object
+     * @var IStatementRepository
+     */
+    protected $statement;
+
+    /**
+     * StatementController constructor.
+     * @param IStatementRepository $statement
+     */
+    public function __construct(IStatementRepository $statement)
+    {
+        $this->statement = $statement;
+    }
+
+    /**
+     * Show Activity Log List
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function getActivityLog()
+    {
+        $perPage = config('ilrs-config.RECORD_PER_PAGE');
+        $page = 1;
+        if(isset($_GET['page']))
+        {
+            $page = ($_GET['page']*$perPage)-($perPage-1);
+        }
+        $statements   = $this->statement->getLogs($perPage);
+        return view('statement.activitylog', compact('statements', 'page'));
+    }
+
+    /**
+     * Create new statement with input json data
+     * @param Request $request
+     * @return mixed
+     */
+    public function saveStatements(Request $request)
+    {
+        $incrementValue = $this->statement->getLastCount();
+        $statementId = 1;
+        if(isset($incrementValue)){
+            $statementId = (int)$incrementValue->_id + 1;
+        }
+        $IlrsObj = new IlrsCoreStatement();
+        $data = $IlrsObj->getStatementInputs($request);
+        $inputs = array();
+        $inputs['_id'] = $statementId;
+        $inputs['statement'] = $data;
+        $content = $data['id'];
+        $this->statement->create($inputs);
+        $location = config('ilrs-config.BASE_XAPI_URL').'/'.config('ilrs-routename.STATEMENT').'?statementId='.$content;
+        return response($content, '201')
+            ->header('Location', $location);
+    }
+
+    /**
+     * Fetch statement record by _id and Display statement on UI
+     * @param Request $request
+     * @param $id
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function show(Request $request, $id)
+    {
+        $id = (int)$id;
+        $statement    =   $this->statement->find($id);
+        return view('statement.show', $statement->toArray());
+        //return Response::json($statement, 200, array(), JSON_PRETTY_PRINT);
+    }
+
+    /**
+     * Get statement by statement.id and return record in JSON format
+     * @param Request $request
+     * @return string
+     */
+    public function getStatementDetailsById(Request $request)
+    {
+        $data = $request::all();
+        $id = $data['statementId'];
+        $fieldName = 'statement.id';
+        $statement    =   $this->statement->findBy($fieldName, $id);
+        //return stripcslashes(response()->json($statement));
+        $json_string = json_encode($statement, JSON_PRETTY_PRINT);
+        return stripcslashes($json_string);
+    }
+
+    /**
+     * Update stateent by ID and handel the voided statement condition
+     * if voided statement then update only VERB block
+     * @param Request $request
+     * @param $id
+     * @return mixed
+     */
+    public function updateStatements(Request $request, $id)
+    {
+        $IlrsObj = new IlrsCoreStatement();
+        $data = $IlrsObj->getStatementInputs($request);
+        $updateField = "statement";
+        if($data['verb']['display']['en-US'] == "voided")
+        {
+            $updateField = "statement.verb";
+            $data = $data['verb'];
+        }
+        return $this->statement->update($id, $updateField, $data);
+    }
+}

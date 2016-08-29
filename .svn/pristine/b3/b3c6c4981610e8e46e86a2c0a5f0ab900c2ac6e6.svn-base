@@ -1,0 +1,9 @@
+<?php
+namespace App\Repository\Filter;
+
+interface IFilterRepository
+{
+    public function filterBy($filters);
+
+    public function all();
+}

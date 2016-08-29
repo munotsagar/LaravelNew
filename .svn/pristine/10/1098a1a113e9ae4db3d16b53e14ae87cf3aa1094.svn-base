@@ -1,0 +1,67 @@
+<?php
+
+namespace App\Http\Controllers;
+
+//use Illuminate\Http\Request;
+
+use App\Http\Requests;
+
+use Request;
+
+use Response;
+
+use App\Statement;
+
+use App\IlrsCore\IlrsCoreStatement;
+
+use Illuminate\Pagination\Paginator;
+
+use Carbon\Carbon;
+
+class StatementController extends BaseController
+{
+
+    public function getActivityLog()
+    {
+        $perPage = config('ilrsconfig.perPage');
+        $page = 1;
+        if(isset($_GET['page']))
+        {
+            $page = ($_GET['page']*$perPage)-($perPage-1);
+        }
+        $statements   = Statement::latest('created_at')->paginate($perPage);
+        return view('statement.activitylog', compact('statements', 'page'));
+    }
+
+    public function saveStatements(Request $request)
+    {
+        $IlrsObj = new IlrsCoreStatement();
+        $data = $IlrsObj->getStatementInputs($request);
+        $input = array();
+        $input['statement'] = $data;
+        $content = $data['id'];
+        $statement = new Statement($input);
+        $statement->save();
+        $location = config('ilrsconfig.locationHeaderUrl').$content;
+        return response($content)
+            ->header('Location', $location)
+            ->header('Status Code', '201');
+    }
+
+    public function show(Request $request, $id)
+    {
+        $statement    =   Statement::findOrFail($id);
+        return view('statement.show', $statement->toArray());
+        //return Response::json($statement, 200, array(), JSON_PRETTY_PRINT);
+    }
+
+    public function getStatementDetailsById(Request $request)
+    {
+        $data = $request::all();
+        $id = $data['statementId'];
+        $statement    =   Statement::where('statement.id', $id)->get()->toArray();
+        //return stripcslashes(response()->json($statement));
+        $json_string = json_encode($statement, JSON_PRETTY_PRINT);
+        return stripcslashes($json_string);
+    }
+}

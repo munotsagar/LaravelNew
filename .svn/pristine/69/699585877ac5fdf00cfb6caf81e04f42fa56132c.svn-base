@@ -1,0 +1,108 @@
+<?php
+namespace App\Repository\Filter;
+
+use App\Models\Statement;
+
+use App\iLRS\Traits\FilterableTrait;
+
+class FilterRepository implements IFilterRepository
+{
+    use FilterableTrait;
+
+    protected $filter;
+    protected $filterNested;
+    protected $filterNestedIds;
+
+    /**
+     * Add valid fileds in valid Filterable Fields array
+     * Create filter object with the reference of Statement
+     * FilterRepository constructor.
+     * @param Statement $statements
+     */
+    public function __construct(Statement $statements)
+    {
+        $this->validFilterableFields = ['statementId', 'voidedStatementId', 'voided', 'agent', 'verb', 'activity', 'registration', 'related_activities', 'related_agents', 'since', 'until', 'limit', 'format', 'attachments', 'ascending'];
+        $this->filter = $statements;
+    }
+
+    /**
+     * filterBy to filter input parameter
+     * @param $filters
+     * @return $this
+     */
+    public function filterBy($filters)
+    {
+        $this->addFilter($filters);
+        return $this;
+    }
+
+    /**
+     * Add filters parameter in where condition to get matching records
+     * @return mixed
+     */
+    public function all()
+    {
+        if(count($this->filters) > 0)
+        {
+            $recursiveFlag = 0;
+            if(!array_key_exists('statement.id', $this->filters) && !array_key_exists('statement.verb.display.en-US', $this->filters))
+            {
+                $recursiveFlag = 1;
+            }
+            $orderByfieldName = "_id";
+            $orderByValue = "ASC";
+            if (array_key_exists('ascending', $this->filters)) {
+                $orderByfieldName = "created_at";
+                if ($this->filters['ascending']=="false") {
+                    $orderByValue = 'DESC';
+                } else {
+                    $orderByValue = 'ASC';
+                }
+                unset($this->filters['ascending']);
+            }
+
+            if(array_key_exists('limit', $this->filters) && (int)$this->filters['limit'] > 0) {
+                $limit = (int)$this->filters['limit'];
+                unset($this->filters['limit']);
+                $recursizeStatementRes = $this->statementFilterWhereCondition($orderByfieldName, $orderByValue, $recursiveFlag);
+                return $recursizeStatementRes->limit($limit)->get()->toArray();
+            } else {
+                $recursizeStatementRes = $this->statementFilterWhereCondition($orderByfieldName, $orderByValue, $recursiveFlag);
+                return $recursizeStatementRes->get()->toArray();
+            }
+        }else{
+            return;
+        }
+    }
+
+    public function statementFilterWhereCondition($orderByfieldName, $orderByValue, $recursiveFlag)
+    {
+        $filterResult = $this->filter->where($this->filters)->orderBy($orderByfieldName, $orderByValue)->get();
+        if(count($filterResult) > 0) {
+            foreach ($filterResult as $filterRes) {
+                $this->filterNestedIds[] = $filterRes->statement['id'];
+                if ($filterRes->statement['object']['objectType'] == "StatementRef" && $recursiveFlag == 1) {
+                    $this->getAllChildsRefStatement($filterRes->statement['object']['id']);
+                }
+            }
+            return $this->filter->whereIn('statement.id', $this->filterNestedIds)->orderBy($orderByfieldName, $orderByValue);
+        }else{
+            return $this->filter->where($this->filters)->orderBy($orderByfieldName, $orderByValue);
+        }
+    }
+
+    public function getAllChildsRefStatement($filterNested)
+    {
+        if ($filterNested) {
+            $filter = $this->filter->where('statement.id', $filterNested)->first();
+            if($filter->statement['object']['objectType'] == "StatementRef"){
+                $this->filterNestedIds[] = $filterNested;
+                $this->getAllChildsRefStatement($filter->statement['object']['id']);
+            } else {
+                return $this->filterNestedIds;
+            }
+        } else {
+            return $this->filterNestedIds;
+        }
+    }
+}
